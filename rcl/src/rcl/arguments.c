@@ -2133,8 +2133,8 @@ _rcl_allocate_initialized_arguments_impl(rcl_arguments_t * args, rcl_allocator_t
   args_impl->parameter_overrides = NULL;
   args_impl->parameter_files = NULL;
   args_impl->num_param_files_args = 0;
-  args_impl->log_stdout_disabled = false;
-  args_impl->log_rosout_disabled = false;
+  args_impl->log_stdout_disabled = true;
+  args_impl->log_rosout_disabled = true;
   args_impl->log_ext_lib_disabled = false;
   args_impl->enclave = NULL;
   args_impl->allocator = *allocator;
