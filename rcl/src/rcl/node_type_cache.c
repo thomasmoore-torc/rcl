@@ -31,7 +31,7 @@ typedef struct rcl_type_info_with_registration_count_t
   rcl_type_info_t type_info;
 } rcl_type_info_with_registration_count_t;
 
-static size_t get_type_hash_hashmap_key(const void * key)
+static size_t __attribute__((no_sanitize_undefined)) get_type_hash_hashmap_key(const void * key)
 {
   // Reinterpret-cast the first sizeof(size_t) bytes of the hash value
   const rosidl_type_hash_t * type_hash = key;
