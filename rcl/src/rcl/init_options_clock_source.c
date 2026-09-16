@@ -59,10 +59,14 @@ rcl_init_options_set_clock_source(
   RCL_CHECK_ALLOCATOR_WITH_MSG(&allocator, "invalid allocator", return RCL_RET_INVALID_ARGUMENT);
 
   rcl_clock_type_impl_t impl;
+  // rcl_clock_type_lookup_by_id() already sets its own error message and
+  // returns RCL_RET_INVALID_ARGUMENT on failure -- propagate that directly
+  // rather than setting a second message on top of it (RCL_SET_ERROR_MSG
+  // while one is already set triggers rcutils's "overwriting unset error"
+  // warning, since it assumes the caller meant to reset first).
   rcl_ret_t lookup_ret = rcl_clock_type_lookup_by_id(clock_type, &impl);
   if (RCL_RET_OK != lookup_ret) {
-    RCL_SET_ERROR_MSG("clock_type was not registered with rcl_clock_type_register");
-    return RCL_RET_INVALID_ARGUMENT;
+    return lookup_ret;
   }
 
   rcl_clock_source_wrapper_t * wrapper =
