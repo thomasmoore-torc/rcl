@@ -40,6 +40,7 @@ endif()
 set(${PROJECT_NAME}_sources
   src/rcl/arguments.c
   src/rcl/client.c
+  src/rcl/clock_type_registry.c
   src/rcl/common.c
   src/rcl/context.c
   src/rcl/discovery_options.c
@@ -51,6 +52,7 @@ set(${PROJECT_NAME}_sources
   src/rcl/guard_condition.c
   src/rcl/init.c
   src/rcl/init_options.c
+  src/rcl/init_options_clock_source.c
   src/rcl/lexer.c
   src/rcl/lexer_lookahead.c
   src/rcl/localhost.c

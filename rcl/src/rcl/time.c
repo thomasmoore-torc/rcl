@@ -19,6 +19,7 @@
 
 #include "./common.h"
 #include "rcl/allocator.h"
+#include "rcl/clock_type_registry.h"
 #include "rcl/error_handling.h"
 #include "rcutils/macros.h"
 #include "rcutils/stdatomic_helper.h"
@@ -55,6 +56,7 @@ rcl_init_generic_clock(rcl_clock_t * clock, rcl_allocator_t * allocator)
   clock->jump_callbacks = NULL;
   clock->num_jump_callbacks = 0u;
   clock->get_now = NULL;
+  clock->fini = NULL;
   clock->data = NULL;
   clock->allocator = *allocator;
 }
@@ -112,7 +114,11 @@ rcl_clock_init(
     case RCL_STEADY_TIME:
       return rcl_steady_clock_init(clock, allocator);
     default:
-      return RCL_RET_INVALID_ARGUMENT;
+      // Not one of the four fixed values above -- check whether it was
+      // registered via rcl_clock_type_register() (rcl/clock_type_registry.h).
+      // This is the only change to this switch: the three built-in cases
+      // above, and RCL_CLOCK_UNINITIALIZED, are untouched.
+      return rcl_clock_init_custom(clock_type, clock, allocator);
   }
 }
 
@@ -143,9 +149,23 @@ rcl_clock_fini(
     case RCL_STEADY_TIME:
       return rcl_steady_clock_fini(clock);
     case RCL_CLOCK_UNINITIALIZED:
-    // fall through
-    default:
       return RCL_RET_INVALID_ARGUMENT;
+    default:
+      // Not one of the four fixed values above -- must be a type registered
+      // via rcl_clock_type_register() (rcl/clock_type_registry.h), the only
+      // way clock->type can hold any other value. Generic (type-independent)
+      // teardown -- freeing jump_callbacks -- still happens here, exactly as
+      // it does for the three built-in types above; only the type-specific
+      // teardown itself is delegated to clock->fini, mirroring how
+      // clock->get_now already delegates the type-specific read.
+      if (NULL == clock->fini) {
+        RCL_SET_ERROR_MSG("clock has an unrecognized type and no fini callback");
+        return RCL_RET_INVALID_ARGUMENT;
+      }
+      rcl_clock_generic_fini(clock);
+      rcl_ret_t fini_ret = clock->fini(clock->data);
+      clock->data = NULL;
+      return fini_ret;
   }
 }
 

@@ -145,6 +145,14 @@ typedef struct rcl_clock_s
   /// Pointer to get_now function
   rcl_ret_t (* get_now)(void * data, rcl_time_point_value_t * now);
   // void (*set_now) (rcl_time_point_value_t);
+  /// Pointer to a function that releases whatever `data` points to.
+  /**
+   * Populated for clock types registered via rcl_clock_type_register()
+   * (see rcl/clock_type_registry.h); NULL for the three built-in types,
+   * which rcl_clock_fini() continues to tear down through its own,
+   * unchanged per-type switch.
+   */
+  rcl_ret_t (* fini)(void * data);
   /// Clock storage
   void * data;
   /// Custom allocator used for internal allocations.
